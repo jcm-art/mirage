@@ -1,6 +1,6 @@
 {
   "version": "0.4.1",
-  "timestamp": 1708593048769,
+  "timestamp": 1708593234102,
   "model": {
     "id": 2,
     "class": "heronarts.lx.structure.LXStructure",
@@ -262,7 +262,7 @@
               "selected": false,
               "enabled": true,
               "cue": false,
-              "fader": 1.0,
+              "fader": 0.27142856642603874,
               "crossfadeGroup": 0,
               "blendMode": 0,
               "midiMonitor": false,
@@ -276,13 +276,13 @@
               "transitionEnabled": false,
               "transitionTimeSecs": 5.0,
               "transitionBlendMode": 0,
-              "focusedPattern": 2,
+              "focusedPattern": 1,
               "triggerPatternCycle": false
             },
             "children": {},
             "effects": [],
             "clips": [],
-            "patternIndex": 2,
+            "patternIndex": 0,
             "patterns": [
               {
                 "id": 96,
@@ -405,7 +405,7 @@
               "label": "Channel-2",
               "arm": false,
               "selected": true,
-              "enabled": true,
+              "enabled": false,
               "cue": false,
               "fader": 1.0,
               "crossfadeGroup": 0,
@@ -484,7 +484,7 @@
                           "exp": 0.0
                         },
                         "children": {},
-                        "basis": 0.07323628346088172
+                        "basis": 0.4981234935247459
                       }
                     ],
                     "modulations": [
@@ -722,8 +722,8 @@
         "camera": {
           "active": false,
           "radius": 503.8792833636931,
-          "theta": -1.618544821627438,
-          "phi": -1.4137166738510132,
+          "theta": -1.905593879520893,
+          "phi": -1.2642119508236647,
           "x": 145.0,
           "y": 0.0,
           "z": 0.0
@@ -732,8 +732,8 @@
           {
             "active": false,
             "radius": 503.8792833636931,
-            "theta": -1.618544821627438,
-            "phi": -1.4137166738510132,
+            "theta": -1.905593879520893,
+            "phi": -1.2642119508236647,
             "x": 145.0,
             "y": 0.0,
             "z": 0.0
