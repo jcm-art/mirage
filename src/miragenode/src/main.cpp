@@ -11,6 +11,7 @@
 #include <Arduino.h>
 #include <ArduinoOTA.h>
 
+#include <ArtnetWifi.h>
 #include <FastLED.h> // Include the Arduino FastLED library
 
 
@@ -42,16 +43,28 @@ int effect_counter = 0;
 const char* ssid = "TBD";
 const char* password = "TBD";
 
+// Artnet settings
+ArtnetWifi artnet;
+const int startUniverse = 0; // CHANGE FOR YOUR SETUP most software this is 1, some software send out artnet first universe as 0.
+const char host[] = "192.168.86.37"; // CHANGE FOR YOUR SETUP your destination
+const int numberOfChannels = NUM_FIXTURES * NUM_LEDS_PER_FIXTURE * 3;
+// Check that all universes received
+const int maxUniverses = numberOfChannels / 512 + ((numberOfChannels % 512) ? 1 : 0);
+bool universesReceived[maxUniverses];
+bool sendFrame = 1;
+
 // Function declarations
+void connect_to_wifi();
+void initialize_arduino_OTA();
+void initialize_serial_comms();
+void initialize_artnet();
+void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data);
 void initialize_addressable_LED_pins(); 
 void set_led(int strip_id, int led_id, int r, int g, int b);
 void check_max_current();
 void addressable_off();
 void vertical_traveling_led(int num_iterations, int delay_time_between_patterns, int delay_time_between_leds);
 void run_next_pattern();
-void initialize_arduino_OTA();
-void initialize_serial_comms();
-void connect_to_wifi();
 
 void setup() {
   /*
@@ -63,11 +76,18 @@ void setup() {
   connect_to_wifi();
   initialize_arduino_OTA();
 
+  // Initialize Artnet connection to host
+  initialize_artnet();
+
   // Initialize built in LED digital pin (on board) as an output.
   pinMode(LED_BUILTIN, OUTPUT);
 
   // Set pin initial conditions 
   initialize_addressable_LED_pins();
+
+  // Perform lighting initialization test
+  Serial.println("Running lighting initialization test");
+  run_next_pattern();
 
 }
 
@@ -79,8 +99,13 @@ void loop() {
   // Check OTA for update
   ArduinoOTA.handle();
 
+  // Handle Artnet
+  uint16_t read_value = artnet.read();
+  Serial.print("Read value: ");
+  Serial.println(read_value);
+
   // Perform Lighting Functions
-  run_next_pattern();
+  // run_next_pattern();
 }
 
 void initialize_serial_comms() {
@@ -94,6 +119,7 @@ void initialize_serial_comms() {
 }
 
 void connect_to_wifi() {
+  Serial.println("Connecting to wifi");
   WiFi.mode(WIFI_STA);
   delay(1000);
   WiFi.begin(ssid, password);
@@ -109,6 +135,9 @@ void initialize_arduino_OTA() {
   /*
   * Function to initialize Arduino OTA for remote flashing of the esp32.
   */
+
+  Serial.println("Initializing Arduino OTA for remote flashing");
+  // Initialize Arduino OTA for remote flashing
   ArduinoOTA
     .onStart([]() {
       String type;
@@ -140,6 +169,76 @@ void initialize_arduino_OTA() {
   Serial.println("Ready");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
+}
+
+void initialize_artnet() {
+  /*
+  * Function to initialize Artnet communication for receiving lighting data.
+  */
+
+  Serial.println("Initializing Artnet communication");
+  // Initialize Artnet communication
+  artnet.begin(host);
+  artnet.setLength(3);
+  artnet.setUniverse(startUniverse);
+
+  // TODO(jcm-art): confirm memset function
+  memset(universesReceived, 0, maxUniverses);
+  // this will be called for each packet received
+  artnet.setArtDmxCallback(onDmxFrame);
+
+}
+
+void onDmxFrame(uint16_t universe, uint16_t length, uint8_t sequence, uint8_t* data)
+{
+  sendFrame = 1;
+  // set brightness of the whole strip
+  if (universe == 15)
+  {
+    FastLED.setBrightness(data[0]);
+    FastLED.show();
+  }
+
+  // range check
+  if (universe < startUniverse)
+  {
+    return;
+  }
+  uint8_t index = universe - startUniverse;
+  if (index >= maxUniverses)
+  {
+    return;
+  }
+
+  // Store which universe has got in
+  universesReceived[index] = true;
+
+  for (int i = 0 ; i < maxUniverses ; i++)
+  {
+    if (!universesReceived[i])
+    {
+      sendFrame = 0;
+      break;
+    }
+  }
+
+  // TODO(jcm-art): fix for multiple strips
+  // read universe and put into the right part of the display buffer
+  for (int i = 0; i < length / 3; i++)
+  {
+    int led = i + (index * 170);
+    if (led < NUM_LEDS_PER_FIXTURE)
+    {
+      leds[0][led] = CRGB(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
+    }
+  }
+
+  if (sendFrame)
+  {
+    FastLED.show();
+    // Reset universeReceived to 0
+    memset(universesReceived, 0, maxUniverses);
+  }
 }
 
 void initialize_addressable_LED_pins() {
