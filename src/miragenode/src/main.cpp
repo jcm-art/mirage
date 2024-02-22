@@ -9,6 +9,7 @@
  */
 
 #include <Arduino.h>
+#include <ArduinoOTA.h>
 
 #include <FastLED.h> // Include the Arduino FastLED library
 
@@ -37,6 +38,10 @@ int effect_counter = 0;
 // Define Serial Output Parameters
 #define SERIAL_INTERVAL 300
 
+// WiFi Configuration Parameters
+const char* ssid = "TBD";
+const char* password = "TBD";
+
 // Function declarations
 void initialize_addressable_LED_pins(); 
 void set_led(int strip_id, int led_id, int r, int g, int b);
@@ -44,11 +49,19 @@ void check_max_current();
 void addressable_off();
 void vertical_traveling_led(int num_iterations, int delay_time_between_patterns, int delay_time_between_leds);
 void run_next_pattern();
+void initialize_arduino_OTA();
+void initialize_serial_comms();
+void connect_to_wifi();
 
 void setup() {
   /*
   * Setup function for esp32 based LED control node, run on boot.
   */
+
+  // Initialize communications
+  initialize_serial_comms();
+  connect_to_wifi();
+  initialize_arduino_OTA();
 
   // Initialize built in LED digital pin (on board) as an output.
   pinMode(LED_BUILTIN, OUTPUT);
@@ -63,8 +76,70 @@ void loop() {
   * Main loop function for esp32 based LED control node.
   */
 
+  // Check OTA for update
+  ArduinoOTA.handle();
+
   // Perform Lighting Functions
   run_next_pattern();
+}
+
+void initialize_serial_comms() {
+  /*
+  * Function to initialize serial communication for debugging.
+  */
+
+  // Initialize serial communication
+  Serial.begin(115200);
+  Serial.println("Booting");
+}
+
+void connect_to_wifi() {
+  WiFi.mode(WIFI_STA);
+  delay(1000);
+  WiFi.begin(ssid, password);
+  delay(1000);
+  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    Serial.println("Connection Failed! Rebooting...");
+    delay(5000);
+    ESP.restart();
+  }
+}
+
+void initialize_arduino_OTA() {
+  /*
+  * Function to initialize Arduino OTA for remote flashing of the esp32.
+  */
+  ArduinoOTA
+    .onStart([]() {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else // U_SPIFFS
+        type = "filesystem";
+
+      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+      Serial.println("Start updating " + type);
+    })
+    .onEnd([]() {
+      Serial.println("\nEnd");
+    })
+    .onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    })
+    .onError([](ota_error_t error) {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    });
+
+  ArduinoOTA.begin();
+
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
 }
 
 void initialize_addressable_LED_pins() {
