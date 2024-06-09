@@ -1,0 +1,17 @@
+channel,net,subnet,universe,netaddress
+chan1layer0,0,0,10,192.168.1.41
+chan2layer0,0,0,11,192.168.1.41
+chan3layer0,0,0,12,192.168.1.41
+chan4layer0,0,0,13,192.168.1.41
+chan5layer0,0,0,14,192.168.1.41
+chan6layer0,0,0,15,192.168.1.41
+chan7layer0,0,0,16,192.168.1.41
+chan8layer0,0,0,17,192.168.1.41
+chan9layer0,0,0,18,192.168.1.41
+chan10layer0,0,0,19,192.168.1.41
+chan11layer0,0,0,20,192.168.1.41
+chan12layer0,0,0,21,192.168.1.41
+chan13layer0,0,0,22,192.168.1.41
+chan14layer0,0,0,23,192.168.1.41
+chan15layer0,0,0,24,192.168.1.41
+chan16layer0,0,0,25,192.168.1.41
