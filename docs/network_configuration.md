@@ -40,4 +40,7 @@ Note that provision, IOO must be pulled to ground to signal that it is waiting f
 
 ### WLED Configuration
 
+
+TODO(jcm-art): Update WLED configuration instructions
+
 WLED Address: 192.168.87.62
