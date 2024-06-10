@@ -1,9 +1,0 @@
-channel,net,subnet,universe,netaddress
-chan1layer0,0,0,10,192.168.87.62
-chan2layer0,0,0,11,192.168.87.62
-chan3layer0,0,0,12,192.168.87.62
-chan4layer0,0,0,13,192.168.87.62
-chan5layer0,0,0,14,192.168.87.62
-chan6layer0,0,0,15,192.168.87.62
-chan7layer0,0,0,16,192.168.87.62
-chan8layer0,0,0,17,192.168.87.62
